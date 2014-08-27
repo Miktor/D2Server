@@ -5,6 +5,8 @@
 #include "JSONParser.h"
 #include "DotaAPI.h"
 #include "DBInserter.h"
+#include "SteamFetcher.h"
+#include "MatchInserter.h"
 #include <cpprest/http_client.h>
 
 int main()
@@ -19,26 +21,26 @@ int main()
 			"d2_pick_assist_pwd",
 			"d2_pick_assist"
 		};
+		
+		auto pApi = std::make_shared<SteamParser::DotaAPI>(U("77021A84BBD69F1369480175FCC45729"), config, U("570"));
+		auto pDb = std::make_shared<SteamParser::Database::DBInserter>(dbConfig);
 
+		SteamParser::SteamFetcher fetcher(pApi);
+		SteamParser::MatchInserter inserter(pDb);
 
-		SteamParser::DotaAPI api(U("77021A84BBD69F1369480175FCC45729"), config, U("570"));
+		auto cvFetcher = std::make_shared<std::condition_variable>();
+		auto cvInserter = std::make_shared<std::condition_variable>();
 
-		SteamParser::Database::DBInserter db(dbConfig);
+		auto pCancelation = std::make_shared<pplx::cancellation_token_source>();
+		auto pQueue = std::make_shared<SteamResponseQueue>();
 
-		auto request = api.GetMatchHistoryBySeqNumber(709365483LL);
-		auto response = request.get();
+		fetcher.Run(pCancelation, pQueue, cvFetcher);
+		inserter.Run(pCancelation, pQueue, cvInserter);
 
-		if (response.status_code() != status_codes::OK)
-		{
-			return response.status_code();
-		}
-		auto json = response.extract_json().get();
-		auto res = SteamParser::JSON::JSONParser::ParseMatchHistoryBySeqNumber(json);
-
-		for (auto it = res.matches.cbegin(); it != res.matches.cend(); ++it)
-		{
-			db.AddMatch(*it);
-		}
+		std::mutex mtx;
+		std::unique_lock<std::mutex> lck(mtx);
+		cvFetcher->wait(lck);
+		cvInserter->wait(lck);
 	}
 	catch (std::exception &e)
 	{

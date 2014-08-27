@@ -9,7 +9,17 @@
 #include <stdio.h>
 #include <tchar.h>
 
+#include <cpprest/basic_types.h>
+#ifdef WIN32
+#define NOMINMAX
+#include <Windows.h>
+#else
+# include <sys/time.h>
+#endif
 
+#include <cpprest/http_listener.h>
 
-// TODO: reference additional headers your program requires here
+#define TRACE					ucout 
+#define TRACE_ACTION(a, k, v)	ucout << a << L" (" << k << L", " << v << L")\n"
+
 #endif // stdafx_h__

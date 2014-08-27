@@ -8,12 +8,12 @@ using namespace web;
 using namespace web::http;
 using namespace web::http::client;
 
-namespace SteamParser{
-
+namespace SteamParser
+{
 	class DotaAPI
 	{
 	public:
-		const utility::string_t SteamApiUrl = U("https://api.steampowered.com");
+		const utility::char_t*	SteamApiUrl = U("https://api.steampowered.com");
 		const utility::string_t DotaMatchPathUrl = U("/IDOTA2Match_");
 		const utility::string_t GetMatchHistoryBySeqNumberUrl = U("/GetMatchHistoryBySequenceNum/v1/");
 

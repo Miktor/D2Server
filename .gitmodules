@@ -1,0 +1,3 @@
+[submodule "libs/casablanca"]
+	path = libs/casablanca
+	url = https://git01.codeplex.com/casablanca
